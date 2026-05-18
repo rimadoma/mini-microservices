@@ -1,0 +1,1 @@
+A simple app for creating posts, and commenting them. Also allows moderation. The purpose is to learn to create minimal microservices and illustrate event based architecture.
