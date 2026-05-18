@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { randomBytes } from 'crypto'
 
 const _port = 4001;
@@ -59,6 +60,7 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
 
 async function createApp() {
     const fastify = Fastify();
+    fastify.register(cors);
     fastify.register(commentRoutes);
     await fastify.listen({ port: _port });
     return fastify;
