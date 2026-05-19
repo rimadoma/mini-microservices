@@ -6,7 +6,7 @@ import axios from 'axios';
 const _port = 4005;
 const _baseAddr = "http://localhost"
 
-async function emitEvent(port: number, event: unknown) {
+async function emitEvent(port: number, event: unknown): Promise<void> {
     try {
         await axios.post(`${_baseAddr}:${port}/events`, event);
     } catch (error) {
@@ -15,11 +15,11 @@ async function emitEvent(port: number, event: unknown) {
     }
 }
 
-async function eventRoutes(fastify: FastifyInstance, _: any) {
+async function eventRoutes(fastify: FastifyInstance, _: any): Promise<void> {
     fastify.post<{ Body: any; _Reply: any }>('/events', async (request, reply) => {
         const event = request.body;
 
-        const results = await Promise.allSettled([4000, 4001, 4002].map(port => emitEvent(port, event)));
+        const results = await Promise.allSettled([4000, 4001, 4002, 4003].map(port => emitEvent(port, event)));
 
         if (results.some(r => r.status === 'rejected')) {
             return reply.code(500).send();
@@ -29,7 +29,7 @@ async function eventRoutes(fastify: FastifyInstance, _: any) {
     });
 }
 
-async function createApp() {
+async function createApp(): Promise<FastifyInstance> {
     const fastify = Fastify();
     fastify.register(eventRoutes);
     fastify.register(cors);

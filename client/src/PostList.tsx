@@ -2,10 +2,19 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import CommentCreate from "./CommentCreate";
 
+type CommentStatus = 'pending' | 'approved' | 'rejected';
+
 interface Comment {
     id: string;
     content: string;
+    status: CommentStatus;
 }
+
+const _commentStatusLabels: Record<CommentStatus, string | null> = {
+    approved: null,
+    pending: 'Pending moderation',
+    rejected: 'Rejected',
+};
 
 interface Post {
     id: string;
@@ -30,7 +39,11 @@ const PostList = () => {
                 {post.comments.length > 0 && (
                     <ul>
                         {post.comments.map(comment => (
-                            <li key={comment.id}>{comment.content}</li>
+                            <li key={comment.id}>
+                                {_commentStatusLabels[comment.status]
+                                    ? <em>{_commentStatusLabels[comment.status]}</em>
+                                    : comment.content}
+                            </li>
                         ))}
                     </ul>
                 )}

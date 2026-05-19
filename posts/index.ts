@@ -16,7 +16,7 @@ interface Post extends PostBody {
 
 const _posts: Record<string, Post> = {}
 
-async function postRoutes(fastify: FastifyInstance, _: any) {
+async function postRoutes(fastify: FastifyInstance, _: any): Promise<void> {
     fastify.get('/posts', async(_request, _reply) => {
         return _posts;
     });
@@ -44,7 +44,7 @@ async function postRoutes(fastify: FastifyInstance, _: any) {
     });
 }
 
-async function createApp() {
+async function createApp(): Promise<FastifyInstance> {
     const fastify = Fastify();
     
     fastify.register(cors);

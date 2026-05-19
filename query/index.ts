@@ -4,19 +4,25 @@ import cors from '@fastify/cors';
 
 const _port = 4002;
 
-interface Comment {
+type CommentStatus = 'pending' | 'approved' | 'rejected';
+
+interface StoredComment {
     id: string;
     content: string;
+    status: CommentStatus;
 }
 
-interface CommentData extends Comment {
+interface Comment {
+    id: string;
     postId: string;
+    content: string;
+    status: CommentStatus;
 }
 
 interface Post {
     id: string;
     title: string;
-    comments: Comment[];
+    comments: StoredComment[];
 }
 
 interface Event {
@@ -26,15 +32,10 @@ interface Event {
 
 const _posts: Record<string, Post> = {};
 
-function _validateComment(data: unknown): data is CommentData {
+function _validateComment(data: unknown): data is Comment {
     if (typeof data !== 'object' || data === null
-        || !('id' in data) || !('content' in data) || !('postId' in data)) {
-        console.error('Invalid CommentCreated data:', data);
-        return false;
-    }
-    const { postId } = data as CommentData;
-    if (_posts[postId] === undefined) {
-        console.error('Post not found for comment, postId:', postId);
+        || !('id' in data) || !('postId' in data) || !('content' in data) || !('status' in data)) {
+        console.error('Invalid Comment data:', data);
         return false;
     }
     return true;
@@ -43,24 +44,43 @@ function _validateComment(data: unknown): data is CommentData {
 function _validatePost(data: unknown): data is Post {
     if (typeof data !== 'object' || data === null
         || !('id' in data) || !('title' in data)) {
-        console.error('Invalid PostCreated data:', data);
+        console.error('Invalid Post data:', data);
         return false;
     }
     return true;
 }
 
-const _eventHandlers: Record<string, (data: unknown) => void> = {
+const _eventHandlers: Record<string, (data: unknown) => void | Promise<void>> = {
     PostCreated: (data) => {
         if (!_validatePost(data)) return;
         _posts[data.id] = { id: data.id, title: data.title, comments: [] };
     },
     CommentCreated: (data) => {
         if (!_validateComment(data)) return;
-        _posts[data.postId]!.comments.push({ id: data.id, content: data.content });
+        const post = _posts[data.postId];
+        if (post === undefined) {
+            console.error('Post not found for comment, postId:', data.postId);
+            return;
+        }
+        post.comments.push({ id: data.id, content: data.content, status: data.status });
+    },
+    CommentUpdated: (data) => {
+        if (!_validateComment(data)) return;
+        const post = _posts[data.postId];
+        if (post === undefined) {
+            console.error('Post not found for comment, postId:', data.postId);
+            return;
+        }
+        const comment = post.comments.find(c => c.id === data.id);
+        if (comment === undefined) {
+            console.error('Comment not found for update, id:', data.id);
+            return;
+        }
+        comment.status = data.status;
     },
 };
 
-async function queryRoutes(fastify: FastifyInstance, _: any) {
+async function queryRoutes(fastify: FastifyInstance, _: any): Promise<void> {
     fastify.get('/posts', async (_request, _reply) => {
         return _posts;
     });
@@ -78,7 +98,7 @@ async function queryRoutes(fastify: FastifyInstance, _: any) {
     });
 }
 
-async function createApp() {
+async function createApp(): Promise<FastifyInstance> {
     const fastify = Fastify();
     fastify.register(cors);
     fastify.register(queryRoutes);

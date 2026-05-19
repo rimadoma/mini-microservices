@@ -6,6 +6,8 @@ import axios from 'axios';
 
 const _port = 4001;
 
+type CommentStatus = 'pending' | 'approved' | 'rejected';
+
 interface CommentBody {
     content: string;
 }
@@ -13,7 +15,10 @@ interface CommentBody {
 interface Comment extends CommentBody {
     id: string;
     postId: string;
+    status: CommentStatus;
 }
+
+interface ModeratedComment extends Comment {}
 
 const _commentsByPostId: Record<string, Comment[]> = {}
 
@@ -26,7 +31,27 @@ const _idParamsSchema = {
     }
 } as const;
 
-async function commentRoutes(fastify: FastifyInstance, _: any) {
+async function _emitCommentUpdated(comment: Comment): Promise<void> {
+    await axios.post("http://localhost:4005/events", {
+        type: "CommentUpdated",
+        data: comment
+    });
+}
+
+const _eventHandlers: Record<string, (data: unknown) => Promise<void>> = {
+    CommentModerated: async (data) => {
+        const { id, postId, status } = data as ModeratedComment;
+        const comment = _commentsByPostId[postId]?.find(c => c.id === id);
+        if (comment === undefined) {
+            console.error('Comment not found for moderation, id:', id);
+            return;
+        }
+        comment.status = status;
+        await _emitCommentUpdated(comment);
+    },
+};
+
+async function commentRoutes(fastify: FastifyInstance, _: any): Promise<void> {
     fastify.get<{ Params: { id: string } }>('/posts/:id/comments', {
         schema: { params: _idParamsSchema }
     }, async (request, _reply) => {
@@ -37,8 +62,10 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
         return comments;
     });
 
-    fastify.post<{ Body: { type: string } }>('/events', async (request, reply) => {
-        console.log(`comments received ${request.body.type} event`);
+    fastify.post<{ Body: { type: string; data: unknown } }>('/events', async (request, reply) => {
+        const { type, data } = request.body;
+        console.log(`comments received ${type} event`);
+        await _eventHandlers[type]?.(data);
         return reply.code(200).send();
     });
 
@@ -58,7 +85,7 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
         const { content } = request.body;
         const postId = request.params.id;
         _commentsByPostId[postId] ??= [];
-        const comment: Comment = { id, content, postId };
+        const comment: Comment = { id, content, postId, status: 'pending' };
         _commentsByPostId[postId].push(comment);
 
         await axios.post("http://localhost:4005/events", {
@@ -70,7 +97,7 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
     });
 }
 
-async function createApp() {
+async function createApp(): Promise<FastifyInstance> {
     const fastify = Fastify();
     fastify.register(cors);
     fastify.register(commentRoutes);
