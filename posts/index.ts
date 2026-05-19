@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import {randomBytes} from 'crypto'
+import axios from 'axios';
 
 const _port = 4000;
 
@@ -20,13 +21,25 @@ async function postRoutes(fastify: FastifyInstance, _: any) {
         return _posts;
     });
 
+    fastify.post<{ Body: { type: string } }>('/events', async (request, reply) => {
+        console.log('Received event:', request.body.type);
+        return reply.code(200).send();
+    });
+
     fastify.post<{ Body: PostBody; Reply: Post }>('/posts', async (request, reply) => {
         const id = randomBytes(16).toString('hex');
-        const {title} = request.body;
-        _posts[id] = {
+        const post = {
             id,
-            title
-        };
+            title: request.body.title
+        }
+
+        _posts[id] = post;
+        
+        await axios.post("http://localhost:4005/events", {
+            type: "PostCreated",
+            data: post
+        });
+        
         return reply.code(201).send(_posts[id]);
     });
 }

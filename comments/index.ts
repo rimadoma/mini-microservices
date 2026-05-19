@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { randomBytes } from 'crypto'
+import axios from 'axios';
 
 const _port = 4001;
 
@@ -31,10 +32,12 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
     }, async (request, reply) => {
         const comments = _commentsByPostId[request.params.id];
         if (comments === undefined) {
-            return reply.code(404).send();
+            return [];
         }
         return comments;
     });
+
+    fastify.post('/events', async (_request, reply) => { return reply.code(200).send(); })
 
     fastify.post<{ Params: { id: string }; Body: CommentBody; Reply: Comment }>('/posts/:id/comments', {
         schema: {
@@ -54,6 +57,12 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
         _commentsByPostId[postId] ??= [];
         const comment: Comment = { id, content, postId };
         _commentsByPostId[postId].push(comment);
+
+        await axios.post("http://localhost:4005/events", {
+            type: "CommentCreated",
+            data: comment
+        });
+
         return reply.code(201).send(comment);
     });
 }
