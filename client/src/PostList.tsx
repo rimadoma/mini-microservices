@@ -41,7 +41,7 @@ const PostList = () => {
                         {post.comments.map(comment => (
                             <li key={comment.id}>
                                 {_commentStatusLabels[comment.status]
-                                    ? <em>{_commentStatusLabels[comment.status]}</em>
+                                    ? <em key={comment.id}>{_commentStatusLabels[comment.status]}</em>
                                     : comment.content}
                             </li>
                         ))}

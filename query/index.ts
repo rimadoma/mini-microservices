@@ -76,6 +76,7 @@ const _eventHandlers: Record<string, (data: unknown) => void | Promise<void>> = 
             console.error('Comment not found for update, id:', data.id);
             return;
         }
+        comment.content = data.content;
         comment.status = data.status;
     },
 };
