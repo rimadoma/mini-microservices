@@ -29,7 +29,7 @@ const _idParamsSchema = {
 async function commentRoutes(fastify: FastifyInstance, _: any) {
     fastify.get<{ Params: { id: string } }>('/posts/:id/comments', {
         schema: { params: _idParamsSchema }
-    }, async (request, reply) => {
+    }, async (request, _reply) => {
         const comments = _commentsByPostId[request.params.id];
         if (comments === undefined) {
             return [];
@@ -37,7 +37,10 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
         return comments;
     });
 
-    fastify.post('/events', async (_request, reply) => { return reply.code(200).send(); })
+    fastify.post<{ Body: { type: string } }>('/events', async (request, reply) => {
+        console.log(`comments received ${request.body.type} event`);
+        return reply.code(200).send();
+    });
 
     fastify.post<{ Params: { id: string }; Body: CommentBody; Reply: Comment }>('/posts/:id/comments', {
         schema: {

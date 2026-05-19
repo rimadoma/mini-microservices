@@ -22,7 +22,7 @@ async function postRoutes(fastify: FastifyInstance, _: any) {
     });
 
     fastify.post<{ Body: { type: string } }>('/events', async (request, reply) => {
-        console.log('Received event:', request.body.type);
+        console.log(`posts received ${request.body.type} event`);
         return reply.code(200).send();
     });
 
