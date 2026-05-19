@@ -16,12 +16,12 @@ interface Comment extends CommentBody {
 
 const _commentsByPostId: Record<string, Comment[]> = {}
 
-const _idLength = 16;
+const _postIdLength = 32;
 
 const _idParamsSchema = {
     type: 'object',
     properties: {
-        id: { type: 'string', minLength: _idLength, maxLength: _idLength }
+        id: { type: 'string', minLength: _postIdLength, maxLength: _postIdLength }
     }
 } as const;
 
@@ -48,7 +48,7 @@ async function commentRoutes(fastify: FastifyInstance, _: any) {
             }
         }
     }, async (request, reply) => {
-        const id = randomBytes(_idLength / 2).toString('hex');
+        const id = randomBytes(16).toString('hex');
         const { content } = request.body;
         const postId = request.params.id;
         _commentsByPostId[postId] ??= [];
