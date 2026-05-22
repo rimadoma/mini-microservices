@@ -6,24 +6,45 @@ import axios from 'axios';
 const _port = 4005;
 const _baseAddr = "http://localhost"
 
+interface Event {
+    type: string;
+    data: unknown;
+}
+
+interface PublishedEvent extends Event {
+    offset: number;
+}
+
+const _events: PublishedEvent[] = []
+
 async function emitEvent(port: number, event: unknown): Promise<void> {
     try {
         await axios.post(`${_baseAddr}:${port}/events`, event);
     } catch (error) {
         console.error(`Failed to emit event to port ${port}:`, error);
-        throw error;
     }
 }
 
 async function eventRoutes(fastify: FastifyInstance, _: any): Promise<void> {
-    fastify.post<{ Body: any; _Reply: any }>('/events', async (request, reply) => {
+
+    
+    fastify.get<{ Querystring: { types?: string; from?: string } }>('/events', async (request, reply) => {
+        const { types, from } = request.query;
+        const offset = from !== undefined ? parseInt(from, 10) : 0;
+        let events = _events.slice(offset);
+        if (types !== undefined) {
+            const typeList = types.split(',');
+            events = events.filter(e => typeList.includes(e.type));
+        }
+        return reply.code(200).send(events);
+    });
+
+    fastify.post<{ Body: Event }>('/events', async (request, reply) => {
         const event = request.body;
 
-        const results = await Promise.allSettled([4000, 4001, 4002, 4003].map(port => emitEvent(port, event)));
+        await Promise.all([4000, 4001, 4002, 4003].map(port => emitEvent(port, event)));
 
-        if (results.some(r => r.status === 'rejected')) {
-            return reply.code(500).send();
-        }
+        _events.push({ ...event, offset: _events.length });
 
         return reply.code(200).send();
     });

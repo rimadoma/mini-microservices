@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import axios from 'axios';
 
 const _port = 4002;
+const _eventBusAddr = 'http://localhost:4005';
 
 type CommentStatus = 'pending' | 'approved' | 'rejected';
 
@@ -28,9 +30,11 @@ interface Post {
 interface Event {
     type: string;
     data: unknown;
+    offset: number;
 }
 
 const _posts: Record<string, Post> = {};
+let _highWaterMark = 0;
 
 function _validateComment(data: unknown): data is Comment {
     if (typeof data !== 'object' || data === null
@@ -107,5 +111,19 @@ async function createApp(): Promise<FastifyInstance> {
     return fastify;
 }
 
+async function _syncEvents(): Promise<void> {
+    const types = Object.keys(_eventHandlers).join(',');
+    const response = await axios.get<Event[]>(`${_eventBusAddr}/events?types=${types}&from=${_highWaterMark}`);
+    for (const event of response.data) {
+        const handler = _eventHandlers[event.type];
+        if (handler !== undefined) {
+            console.log(`Syncing event ${event.offset}: ${event.type}`)
+            await handler(event.data);
+            _highWaterMark = event.offset + 1;
+        }
+    }
+}
+
 await createApp();
 console.log(`Listening on ${_port}`);
+await _syncEvents();
