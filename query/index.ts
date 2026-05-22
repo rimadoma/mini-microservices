@@ -113,6 +113,7 @@ async function createApp(): Promise<FastifyInstance> {
 
 async function _syncEvents(): Promise<void> {
     const types = Object.keys(_eventHandlers).join(',');
+    // The high-water mark makes no sense as it's not stored offline, but for the sake of exercise...
     const response = await axios.get<Event[]>(`${_eventBusAddr}/events?types=${types}&from=${_highWaterMark}`);
     for (const event of response.data) {
         const handler = _eventHandlers[event.type];
