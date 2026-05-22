@@ -26,8 +26,12 @@ const PostList = () => {
     const [posts, setPosts] = useState<Record<string, Post>>({});
 
     const fetchPosts = async () => {
-        const response = await axios.get('http://localhost:4002/posts');
-        setPosts(response.data);
+        try {
+            const response = await axios.get('http://localhost:4002/posts');
+            setPosts(response.data);
+        } catch {
+            // keep stale state
+        }
     };
 
     useEffect(() => { fetchPosts(); }, []);

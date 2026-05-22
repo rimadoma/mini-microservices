@@ -41,11 +41,9 @@ async function eventRoutes(fastify: FastifyInstance, _: any): Promise<void> {
 
     fastify.post<{ Body: Event }>('/events', async (request, reply) => {
         const event = request.body;
-
-        await Promise.all([4000, 4001, 4002, 4003].map(port => emitEvent(port, event)));
-
         _events.push({ ...event, offset: _events.length });
-
+        // No error handling or keeping track of what's the last event we've successfully sent...
+        await Promise.all([4000, 4001, 4002, 4003].map(port => emitEvent(port, event)));
         return reply.code(200).send();
     });
 }
