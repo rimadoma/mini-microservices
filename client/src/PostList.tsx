@@ -27,7 +27,7 @@ const PostList = () => {
 
     const fetchPosts = async () => {
         try {
-            const response = await axios.get('http://localhost:4002/posts');
+            const response = await axios.get(`${process.env.REACT_APP_QUERY_URL ?? 'http://localhost:4002'}/posts`);
             setPosts(response.data);
         } catch {
             // keep stale state

@@ -1,0 +1,58 @@
+services:
+  posts:
+    build:
+      context: .
+      args:
+        SERVICE: posts
+    ports:
+      - "4000:4000"
+    environment:
+      EVENT_BUS_URL: http://event-bus:4005
+
+  comments:
+    build:
+      context: .
+      args:
+        SERVICE: comments
+    ports:
+      - "4001:4001"
+    environment:
+      EVENT_BUS_URL: http://event-bus:4005
+
+  query:
+    build:
+      context: .
+      args:
+        SERVICE: query
+    ports:
+      - "4002:4002"
+    environment:
+      EVENT_BUS_URL: http://event-bus:4005
+
+  moderation:
+    build:
+      context: .
+      args:
+        SERVICE: moderation
+    ports:
+      - "4003:4003"
+    environment:
+      EVENT_BUS_URL: http://event-bus:4005
+
+  client:
+    build: ./client
+    ports:
+      - "3000:3000" # matches the default port of npx serve
+
+  event-bus:
+    build:
+      context: .
+      args:
+        SERVICE: event-bus
+    ports:
+      - "4005:4005"
+    environment:
+      POSTS_URL: http://posts:4000
+      COMMENTS_URL: http://comments:4001
+      QUERY_URL: http://query:4002
+      MODERATION_URL: http://moderation:4003

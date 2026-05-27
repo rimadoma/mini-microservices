@@ -32,7 +32,7 @@ const _idParamsSchema = {
 } as const;
 
 async function _emitCommentUpdated(comment: Comment): Promise<void> {
-    await axios.post("http://localhost:4005/events", {
+    await axios.post(`${process.env['EVENT_BUS_URL'] ?? 'http://localhost:4005'}/events`, {
         type: "CommentUpdated",
         data: comment
     });
@@ -88,7 +88,7 @@ async function commentRoutes(fastify: FastifyInstance, _: any): Promise<void> {
         const comment: Comment = { id, content, postId, status: 'pending' };
         _commentsByPostId[postId].push(comment);
 
-        await axios.post("http://localhost:4005/events", {
+        await axios.post(`${process.env['EVENT_BUS_URL'] ?? 'http://localhost:4005'}/events`, {
             type: "CommentCreated",
             data: comment
         });

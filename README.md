@@ -23,4 +23,12 @@ Each service is independent, maintains its own data store, and communicates excl
 
 ## Running
 
-Install dependencies and start each service with `npm run dev` from its directory. Start the client with `npm start`.
+**All services (Docker):** from the project root:
+
+```bash
+docker compose up --build
+```
+
+**Backend (local):** install dependencies and start each service with `npm run dev` from its directory.
+
+**Client (local):** `npm start` from `client/`.

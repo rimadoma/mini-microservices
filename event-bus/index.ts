@@ -4,7 +4,12 @@ import cors from '@fastify/cors';
 import axios from 'axios';
 
 const _port = 4005;
-const _baseAddr = "http://localhost"
+const _serviceUrls: Record<number, string> = {
+    4000: process.env['POSTS_URL'] ?? 'http://localhost:4000',
+    4001: process.env['COMMENTS_URL'] ?? 'http://localhost:4001',
+    4002: process.env['QUERY_URL'] ?? 'http://localhost:4002',
+    4003: process.env['MODERATION_URL'] ?? 'http://localhost:4003',
+};
 
 interface Event {
     type: string;
@@ -19,7 +24,9 @@ const _events: PublishedEvent[] = []
 
 async function emitEvent(port: number, event: unknown): Promise<void> {
     try {
-        await axios.post(`${_baseAddr}:${port}/events`, event);
+        const url = _serviceUrls[port];
+        if (url === undefined) return;
+        await axios.post(`${url}/events`, event);
     } catch (error) {
         console.error(`Failed to emit event to port ${port}:`, error);
     }

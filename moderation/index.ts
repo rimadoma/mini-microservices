@@ -13,7 +13,7 @@ interface Event {
 }
 
 async function _emitCommentModerated(comment: Comment, status: CommentStatus): Promise<void> {
-    await axios.post('http://localhost:4005/events', {
+    await axios.post(`${process.env['EVENT_BUS_URL'] ?? 'http://localhost:4005'}/events`, {
         type: 'CommentModerated',
         data: { ...comment, status }
     });

@@ -4,7 +4,7 @@ import cors from '@fastify/cors';
 import axios from 'axios';
 
 const _port = 4002;
-const _eventBusAddr = 'http://localhost:4005';
+const _eventBusAddr = process.env['EVENT_BUS_URL'] ?? 'http://localhost:4005';
 
 type CommentStatus = 'pending' | 'approved' | 'rejected';
 
@@ -54,7 +54,7 @@ function _validatePost(data: unknown): data is Post {
     return true;
 }
 
-const _eventHandlers: Record<string, (data: unknown) => void | Promise<void>> = {
+const _eventHandlers: Record<string, (data: unknown) => void> = {
     PostCreated: (data) => {
         if (!_validatePost(data)) return;
         _posts[data.id] = { id: data.id, title: data.title, comments: [] };
@@ -119,7 +119,7 @@ async function _syncEvents(): Promise<void> {
         const handler = _eventHandlers[event.type];
         if (handler !== undefined) {
             console.log(`Syncing event ${event.offset}: ${event.type}`)
-            await handler(event.data);
+            handler(event.data);
             _highWaterMark = event.offset + 1;
         }
     }
