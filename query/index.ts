@@ -107,7 +107,7 @@ async function createApp(): Promise<FastifyInstance> {
     const fastify = Fastify();
     fastify.register(cors);
     fastify.register(queryRoutes);
-    await fastify.listen({ port: _port });
+    await fastify.listen({ port: _port, host: '0.0.0.0' });
     return fastify;
 }
 

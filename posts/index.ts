@@ -49,7 +49,7 @@ async function createApp(): Promise<FastifyInstance> {
     
     fastify.register(cors);
     fastify.register(postRoutes);
-    await fastify.listen({ port: _port });
+    await fastify.listen({ port: _port, host: '0.0.0.0' });
     
     return fastify;
 }
