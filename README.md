@@ -32,3 +32,25 @@ docker compose up --build
 **Backend (local):** install dependencies and start each service with `npm run dev` from its directory.
 
 **Client (local):** `npm start` from `client/`.
+
+**Kubernetes:** build and tag each backend image, then apply the manifests:
+
+```bash
+docker build --build-arg SERVICE=posts -t richdg4/posts:latest .
+docker build --build-arg SERVICE=comments -t richdg4/comments:latest .
+docker build --build-arg SERVICE=query -t richdg4/query:latest .
+docker build --build-arg SERVICE=moderation -t richdg4/moderation:latest .
+docker build --build-arg SERVICE=event-bus -t richdg4/event-bus:latest .
+
+kubectl apply -f infra/k8s/
+```
+
+For a local cluster (minikube/kind), load images instead of pushing to a registry:
+
+```bash
+# minikube
+minikube image load richdg4/posts:latest
+
+# kind
+kind load docker-image richdg4/posts:latest
+```
