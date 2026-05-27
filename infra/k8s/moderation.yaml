@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moderation-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moderation
+  template:
+    metadata:
+      labels:
+        app: moderation
+    spec:
+        containers:
+          - name: moderation
+            image: richdgo4/moderation:latest
+            env:
+              - name: EVENT_BUS_URL
+                value: http://events-service:4005

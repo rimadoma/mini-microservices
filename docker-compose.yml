@@ -1,3 +1,4 @@
+# For local development without K8s only
 services:
   posts:
     build:

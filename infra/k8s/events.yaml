@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events
+  template:
+    metadata:
+      labels:
+        app: events
+    spec:
+        containers:
+          - name: events
+            image: richdgo4/event-bus:latest
+
+            env:
+              - name: POSTS_URL
+                value: http://posts-service:4000
+              - name: COMMENTS_URL
+                value: http://comments-service:4001
+              - name: QUERY_URL
+                value: http://query-service:4002
+              - name: MODERATION_URL
+                value: http://moderation-service:4003
