@@ -1,0 +1,53 @@
+apiVersion: skaffold/v4beta14
+kind: Config
+manifests:
+  rawYaml:
+    - ./infra/k8s/*
+build:
+  local:
+    push: false
+  artifacts:
+    - image: richdgo4/posts
+      context: posts
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "dist/**/*.js"
+            dest: "."
+    - image: richdgo4/comments
+      context: comments
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "dist/**/*.js"
+            dest: "."
+    - image: richdgo4/query
+      context: query
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "dist/**/*.js"
+            dest: "."
+    - image: richdgo4/moderation
+      context: moderation
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "dist/**/*.js"
+            dest: "."
+    - image: richdgo4/event-bus
+      context: event-bus
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: "dist/**/*.js"
+            dest: "."
+    - image: richdgo4/client
+      context: client
+      docker:
+        dockerfile: Dockerfile

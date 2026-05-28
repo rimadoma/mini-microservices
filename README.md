@@ -74,12 +74,12 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 ### Build
 
 ```bash
-docker build --build-arg SERVICE=posts -t richdgo4/posts:latest .
-docker build --build-arg SERVICE=comments -t richdgo4/comments:latest .
-docker build --build-arg SERVICE=query -t richdgo4/query:latest .
-docker build --build-arg SERVICE=moderation -t richdgo4/moderation:latest .
-docker build --build-arg SERVICE=event-bus -t richdgo4/event-bus:latest .
-docker build -f client/Dockerfile -t richdgo4/client:latest client/
+docker build -t richdgo4/posts:latest posts/
+docker build -t richdgo4/comments:latest comments/
+docker build -t richdgo4/query:latest query/
+docker build -t richdgo4/moderation:latest moderation/
+docker build -t richdgo4/event-bus:latest event-bus/
+docker build -t richdgo4/client:latest client/
 ```
 
 ### Deploy
@@ -96,6 +96,44 @@ docker push richdgo4/client:latest
 
 kubectl apply -f infra/k8s/
 ```
+
+### Access
+
+Open `http://localhost` in your browser.
+
+---
+
+## Running on Kubernetes with Skaffold
+
+Skaffold automates the build-deploy cycle. It builds images directly into the local Docker daemon (no push required) and redeploys automatically when source files change.
+
+### Prerequisites
+
+Install Ingress NGINX (same as above) and [Skaffold v2](https://skaffold.dev/docs/install/).
+
+### Run
+
+```bash
+skaffold dev
+```
+
+This builds all images, applies the manifests, and watches for file changes.
+
+### Sync
+
+For backend services, Skaffold syncs compiled `.js` files directly into the running container instead of triggering a full rebuild. nodemon in the container then restarts the service automatically.
+
+Since the services are TypeScript, you need to compile first. In each service directory you want to iterate on:
+
+```bash
+npm run build
+```
+
+Skaffold detects the changed `dist/*.js` files and syncs them into the container.
+
+> **Tip:** Run `tsc --watch` in a service directory to recompile automatically on every `.ts` save, so the sync happens as soon as you save.
+
+Changes to `Dockerfile` or `package.json` always trigger a full rebuild rather than a sync.
 
 ### Access
 
