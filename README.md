@@ -33,7 +33,7 @@ docker compose up --build
 
 **Client (local):** `npm start` from `client/`.
 
-**Kubernetes:** build and tag each backend image, then apply the manifests:
+**Kubernetes:** build and tag all images, then apply the manifests:
 
 ```bash
 docker build --build-arg SERVICE=posts -t richdgo4/posts:latest .
@@ -41,6 +41,7 @@ docker build --build-arg SERVICE=comments -t richdgo4/comments:latest .
 docker build --build-arg SERVICE=query -t richdgo4/query:latest .
 docker build --build-arg SERVICE=moderation -t richdgo4/moderation:latest .
 docker build --build-arg SERVICE=event-bus -t richdgo4/event-bus:latest .
+docker build -f client/Dockerfile -t richdgo4/client:latest client/
 
 docker login
 
@@ -49,6 +50,18 @@ docker push richdgo4/comments:latest
 docker push richdgo4/query:latest
 docker push richdgo4/moderation:latest
 docker push richdgo4/event-bus:latest
+docker push richdgo4/client:latest
 
 kubectl apply -f infra/k8s/
 ```
+
+**Accessing services locally:** Docker Desktop on Windows does not map NodePorts to localhost. Use `kubectl port-forward` instead:
+
+```bash
+kubectl port-forward service/client-service 3000:3000
+kubectl port-forward service/posts-service 4000:4000
+kubectl port-forward service/comments-service 4001:4001
+kubectl port-forward service/query-service 4002:4002
+```
+
+Open `http://localhost:3000` in your browser. Run each `port-forward` command in a separate terminal and keep them running.
