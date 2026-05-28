@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: client-service
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: client
   ports:
@@ -11,4 +11,3 @@ spec:
       protocol: TCP
       port: 3000
       targetPort: 3000
-      nodePort: 30000

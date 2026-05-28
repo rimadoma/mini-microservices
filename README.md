@@ -21,19 +21,57 @@ Each service is independent, maintains its own data store, and communicates excl
 2. A comment is created → `comments` emits `CommentCreated` with status `pending` → `query` stores it, `moderation` picks it up
 3. After moderation → `moderation` emits `CommentModerated` → `comments` emits `CommentUpdated` → `query` updates the comment status to `approved` or `rejected`
 
-## Running
+## Running locally
 
-**All services (Docker):** from the project root:
+### Run
+
+From each backend service directory (`posts`, `comments`, `query`, `moderation`, `event-bus`):
+
+```bash
+npm install
+npm run dev
+```
+
+From `client/`:
+
+```bash
+npm install
+npm start
+```
+
+### Access
+
+Open `http://localhost:3000` in your browser. Each backend service is available on its own port (see table above).
+
+---
+
+## Running with Docker
+
+### Build and deploy
+
+From the project root:
 
 ```bash
 docker compose up --build
 ```
 
-**Backend (local):** install dependencies and start each service with `npm run dev` from its directory.
+### Access
 
-**Client (local):** `npm start` from `client/`.
+Open `http://localhost:3000` in your browser.
 
-**Kubernetes:** build and tag all images, then apply the manifests:
+---
+
+## Running on Kubernetes
+
+### Prerequisites
+
+Install Ingress NGINX:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.15.1/deploy/static/provider/cloud/deploy.yaml
+```
+
+### Build
 
 ```bash
 docker build --build-arg SERVICE=posts -t richdgo4/posts:latest .
@@ -42,7 +80,11 @@ docker build --build-arg SERVICE=query -t richdgo4/query:latest .
 docker build --build-arg SERVICE=moderation -t richdgo4/moderation:latest .
 docker build --build-arg SERVICE=event-bus -t richdgo4/event-bus:latest .
 docker build -f client/Dockerfile -t richdgo4/client:latest client/
+```
 
+### Deploy
+
+```bash
 docker login
 
 docker push richdgo4/posts:latest
@@ -55,13 +97,6 @@ docker push richdgo4/client:latest
 kubectl apply -f infra/k8s/
 ```
 
-**Accessing services locally:** Docker Desktop on Windows does not map NodePorts to localhost. Use `kubectl port-forward` instead:
+### Access
 
-```bash
-kubectl port-forward service/client-service 3000:3000
-kubectl port-forward service/posts-service 4000:4000
-kubectl port-forward service/comments-service 4001:4001
-kubectl port-forward service/query-service 4002:4002
-```
-
-Open `http://localhost:3000` in your browser. Run each `port-forward` command in a separate terminal and keep them running.
+Open `http://localhost` in your browser.

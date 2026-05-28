@@ -38,7 +38,7 @@ async function moderationRoutes(fastify: FastifyInstance, _: any): Promise<void>
         const handler = _eventHandlers[type];
         if (handler !== undefined) {
             console.log(`moderation received ${type} event`);
-            await handler(data);
+            handler(data);
         }
         return reply.code(200).send();
     });

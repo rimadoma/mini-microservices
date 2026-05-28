@@ -26,7 +26,7 @@ async function postRoutes(fastify: FastifyInstance, _: any): Promise<void> {
         return reply.code(200).send();
     });
 
-    fastify.post<{ Body: PostBody; Reply: Post }>('/posts', async (request, reply) => {
+    fastify.post<{ Body: PostBody; Reply: Post }>('/posts/create', async (request, reply) => {
         const id = randomBytes(16).toString('hex');
         const post = {
             id,
